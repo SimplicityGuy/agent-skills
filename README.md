@@ -7,6 +7,8 @@ A collection of Claude Code skills (`.skill.md` files) for common workflows.
 | Skill | Description |
 |-------|-------------|
 | [brand-asset-audit](brand-asset-audit.skill.md) | Audit and generate brand assets (logos, favicons, OG images, design system docs) |
+| [comprehensive-docs](comprehensive-docs.skill.md) | Build a full `docs/` suite — index, categorized guides, role-based navigation, consistent formatting |
+| [readme](readme.skill.md) | Create or restructure a project's root README with the standard section layout and emoji-prefixed headers |
 
 ## Setup
 
