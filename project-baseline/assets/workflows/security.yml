@@ -1,0 +1,177 @@
+---
+# This workflow runs security scans including dependency vulnerability scanning,
+# secret detection, and container vulnerability scanning.
+# It is called by the build.yml workflow.
+# Workflow linting (actionlint) is handled by pre-commit (see .pre-commit-config.yaml).
+# Dockerfile linting (hadolint) is handled by docker-validate.yml.
+# Covers issue #72: https://github.com/SimplicityGuy/discogsography/issues/72
+name: Security
+
+on:
+  workflow_call:
+
+env:
+  CI: true
+  PYTHON_VERSION: "3.13"
+
+permissions:
+  contents: read
+  security-events: write # Required for SARIF uploads to GitHub Security tab
+
+jobs:
+  python-security:
+    name: Python Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🔧 Setup Python and UV
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 🔧 Setup Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: just install-all
+
+      - name: 🔍 Run pip-audit (Python dependency vulnerability scan)
+        run: just pip-audit
+
+      - name: 🛡️ Run bandit (Python SAST)
+        run: just security
+
+      - name: 🌐 Run osv-scanner (multi-ecosystem vulnerability scan)
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+
+  semgrep:
+    name: Semgrep CE Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    container:
+      image: semgrep/semgrep
+
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🔬 Run semgrep scan
+        run: semgrep scan --config auto --error --sarif --output semgrep.sarif
+
+      - name: 🧹 Remove nosemgrep-suppressed findings from SARIF
+        # Semgrep includes `# nosemgrep` suppressed findings in SARIF with a
+        # `suppressions` field. GitHub Code Scanning still creates alerts from
+        # them, even though they are intentionally silenced. Strip them before
+        # upload so GHAS only sees genuinely un-suppressed findings.
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open("semgrep.sarif") as f:
+              sarif = json.load(f)
+          for run in sarif.get("runs", []):
+              run["results"] = [
+                  r for r in run.get("results", [])
+                  if not r.get("suppressions")
+              ]
+          with open("semgrep.sarif", "w") as f:
+              json.dump(sarif, f)
+          EOF
+        if: always()
+
+      - name: 📤 Upload SARIF to GitHub Advanced Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
+
+  rust-security:
+    name: Rust Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🦀 Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Rust dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            extractor/target/
+          key: ${{ runner.os }}-cargo-security-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-security-
+            ${{ runner.os }}-cargo-
+
+      - name: 📦 Install cargo-audit and cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit,cargo-deny
+
+      - name: 🔧 Setup Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔍 Run cargo-audit (Rust advisory database scan)
+        run: just extractor-audit
+
+      - name: 🛡️ Run cargo-deny (Rust license and policy check)
+        run: just extractor-deny
+
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Full history required for comprehensive secret scanning
+
+      - name: 🔑 Run TruffleHog (secret detection)
+        uses: trufflesecurity/trufflehog@v3.95.3
+        with:
+          path: ./
+          extra_args: --only-verified
+
+  container-scanning:
+    name: Container Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🛡️ Run trivy (filesystem vulnerability scan)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+
+      - name: 📤 Upload trivy SARIF results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif

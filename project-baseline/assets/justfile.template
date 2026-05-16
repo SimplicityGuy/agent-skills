@@ -1,0 +1,248 @@
+#!/usr/bin/env just --justfile
+#
+# <PROJECT_NAME> justfile — single source of truth for development commands.
+#
+# Hard rule: every command you run locally should be `just <name>`, and every
+# CI step that runs that command MUST call `just <name>` — never inline the
+# tool invocation. One change point.
+#
+# Groups (alphabetical within each):
+#   setup     install, init, sync, lock, update-deps, update-hooks
+#   quality   lint, format, security, pip-audit
+#   test      test, test-cov, test-ci (plus test-<svc> in monorepos)
+#   docker    docker-build, docker-validate, up, down, logs, rebuild
+#   rust      extractor-*  (only when a Rust crate is present)
+#   node      install-js, test-js, update-npm  (only when Node is present)
+#   dev       dev, run, monitor
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+# Default recipe shows the full grouped list
+default:
+    @just --list
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Setup
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Install all dependencies and set up the dev environment
+[group('setup')]
+install:
+    uv sync --all-extras
+
+# Install all deps including editable packages for every service (used in CI)
+[group('setup')]
+install-all:
+    uv sync --all-extras
+    # For each service in a uv workspace, add `uv pip install -e <service>` lines below.
+
+# Install pre-commit hooks
+[group('setup')]
+init:
+    uv run pre-commit install
+    @echo '✅ Pre-commit hooks installed'
+
+# Update pre-commit hooks to latest versions (frozen, SHA-pinned)
+[group('setup')]
+update-hooks:
+    uv run pre-commit autoupdate --freeze
+
+# Check for outdated dependencies across all ecosystems
+[group('setup')]
+check-updates:
+    @echo '🐍 Python:'
+    uv run pip list --outdated
+    @echo ''
+    @if [ -f Cargo.toml ]; then echo '🦀 Rust:'; cargo outdated; fi
+    @if [ -f package.json ]; then echo '📦 Node:'; npm outdated || true; fi
+
+# Update all dependencies via the canonical script. Minor/patch by default;
+# pass --major for major bumps too.
+[group('setup')]
+update-deps *flags:
+    ./scripts/update-project.sh --no-backup --skip-tests {{ flags }}
+    @echo '✅ All dependencies updated — run `just test-all` to verify'
+
+# Lock Python dependencies with upgrades (respects >= constraints)
+[group('setup')]
+lock-upgrade:
+    uv lock --upgrade
+
+# Sync all Python deps including dev + extras
+[group('setup')]
+sync:
+    uv sync --all-extras --dev
+
+# Sync with upgrades
+[group('setup')]
+sync-upgrade:
+    uv sync --all-extras --dev --upgrade
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Quality
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Run all pre-commit hooks on all files
+[group('quality')]
+lint:
+    uv run pre-commit run --all-files
+
+# Run Python-specific linters (ruff + mypy)
+[group('quality')]
+lint-python:
+    uv run ruff check .
+    uv run mypy .
+
+# Format Python with ruff
+[group('quality')]
+format:
+    uv run ruff format .
+
+# Run bandit (Python SAST)
+[group('quality')]
+security:
+    uv run bandit -r . -c pyproject.toml
+
+# Run pip-audit (Python dependency vulnerability scan)
+[group('quality')]
+pip-audit:
+    #!/usr/bin/env bash
+    set -e
+    IGNORE_ARGS=""
+    if [[ -f .pip-audit-ignores ]]; then
+        while IFS= read -r line; do
+            vuln_id=$(echo "$line" | sed 's/#.*//' | tr -d '[:space:]')
+            [[ -z "$vuln_id" ]] && continue
+            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $vuln_id"
+        done < .pip-audit-ignores
+    fi
+    # shellcheck disable=SC2086
+    uv run pip-audit --desc $IGNORE_ARGS
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Test
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Run unit + integration tests (excluding e2e)
+[group('test')]
+test:
+    uv run pytest -m 'not e2e'
+
+# Run tests with coverage (XML for codecov + terminal summary)
+[group('test')]
+test-cov:
+    uv run pytest -m 'not e2e' --cov --cov-report=xml --cov-report=term
+
+# Run the full test suite as CI does
+[group('test')]
+test-ci: test-cov
+
+# Run everything including e2e
+[group('test')]
+test-all:
+    uv run pytest
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Docker
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Build all images via docker-compose
+[group('docker')]
+docker-build:
+    docker compose build
+
+# Validate Dockerfile(s) via hadolint
+[group('docker')]
+docker-validate:
+    docker run --rm -i hadolint/hadolint < Dockerfile
+
+# Validate docker-compose.yml
+[group('docker')]
+docker-compose-validate:
+    docker compose config -q
+
+# Start the stack
+[group('docker')]
+up:
+    docker compose up -d
+
+# Stop the stack
+[group('docker')]
+down:
+    docker compose down
+
+# Tail logs
+[group('docker')]
+logs service="":
+    docker compose logs -f {{ service }}
+
+# Rebuild and restart
+[group('docker')]
+rebuild:
+    docker compose up -d --build
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Rust  (delete this whole block if no Rust crate)
+# ──────────────────────────────────────────────────────────────────────────────
+
+[group('rust')]
+extractor-build:
+    cd extractor && cargo build --release
+
+[group('rust')]
+extractor-test:
+    cd extractor && cargo test
+
+[group('rust')]
+extractor-fmt:
+    cd extractor && cargo fmt
+
+[group('rust')]
+extractor-fmt-check:
+    cd extractor && cargo fmt --check
+
+[group('rust')]
+extractor-clippy:
+    cd extractor && cargo clippy --all-targets -- -D warnings
+
+[group('rust')]
+extractor-audit:
+    cd extractor && cargo audit
+
+[group('rust')]
+extractor-deny:
+    cd extractor && cargo deny check
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Node  (delete this whole block if no package.json)
+# ──────────────────────────────────────────────────────────────────────────────
+
+[group('node')]
+install-js:
+    cd <NODE_DIR> && npm ci
+
+[group('node')]
+test-js:
+    cd <NODE_DIR> && npx vitest run
+
+[group('node')]
+test-js-cov:
+    cd <NODE_DIR> && npx vitest run --coverage
+
+[group('node')]
+update-npm:
+    cd <NODE_DIR> && npm update --save
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Dev / Run
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Run the main service locally
+[group('dev')]
+dev:
+    uv run python -m <PROJECT_NAME_UNDERSCORED>
+
+# Tail logs across services
+[group('dev')]
+monitor:
+    docker compose logs -f --tail=100

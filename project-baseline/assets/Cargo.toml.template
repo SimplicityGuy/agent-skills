@@ -1,0 +1,62 @@
+# Cargo.toml template. Substitute placeholders:
+#   <CRATE_NAME>           e.g. "my-extractor"
+#   <CRATE_DESCRIPTION>    one-line description
+#   <REPOSITORY_URL>       https://github.com/<owner>/<repo>
+#   <LICENSE>              e.g. "MIT"
+#   <RUST_EDITION>         "2024" (current as of 2026)
+#   <RUST_MSRV>            e.g. "1.94.1"
+#
+# Two layouts are supported:
+#   1. Standalone crate (Cargo.toml at repo root). See cronduit.
+#   2. Workspace member (this Cargo.toml at <member>/Cargo.toml plus a top-level
+#      Cargo.toml with [workspace] members = ["<member>"]). See discogsography.
+
+[package]
+description = "<CRATE_DESCRIPTION>"
+edition = "<RUST_EDITION>"
+license = "<LICENSE>"
+name = "<CRATE_NAME>"
+readme = "README.md"
+repository = "<REPOSITORY_URL>"
+rust-version = "<RUST_MSRV>"
+version = "0.1.0"
+
+[lib]
+name = "<CRATE_NAME_UNDERSCORED>"
+path = "src/lib.rs"
+
+[[bin]]
+name = "<CRATE_NAME>"
+path = "src/main.rs"
+
+[dependencies]
+# Add runtime dependencies here. Conventions:
+#   - Pin to a major.minor with explicit `version = "X.Y"`
+#   - Disable default features when you only need a subset: `default-features = false`
+#   - Prefer rustls over OpenSSL transitively (set `features = ["rustls-tls"]`)
+#   - Add a one-line comment above each dep group explaining its role
+
+[dev-dependencies]
+# Test-only dependencies (testcontainers, wiremock, assert_cmd, predicates, ...)
+
+[features]
+# Opt-in feature gates. Declare any cfg-checked feature here so
+# `clippy -D warnings` doesn't fail on `unexpected_cfgs`.
+# integration = []
+
+# Release profile hardened for distribution. These take longer to compile but
+# produce smaller, faster, safer binaries — appropriate for container images.
+[profile.release]
+codegen-units = 1
+lto = "thin"
+panic = "abort"
+strip = "symbols"
+
+[lints.rust]
+unsafe_code = "forbid"
+# missing_docs = "warn"  # Enable when ready
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Carve out exceptions per file with `#[allow(clippy::<lint>)]`

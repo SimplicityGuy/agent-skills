@@ -1,0 +1,117 @@
+# syntax=docker/dockerfile:1
+#
+# Dockerfile for a Python service using uv. Substitute placeholders:
+#   <SERVICE_NAME>          e.g. "api"
+#   <SERVICE_TITLE>         e.g. "Discogsography API"
+#   <SERVICE_DESCRIPTION>   one-line
+#   <OWNER>                 e.g. "SimplicityGuy"
+#   <REPO>                  e.g. "discogsography"
+#   <AUTHOR_NAME>           e.g. "Robert Wlodarczyk"
+#   <AUTHOR_EMAIL>          e.g. "robert@simplicityguy.com"
+#   <LICENSE>               e.g. "MIT"
+#   <PROJECT_DEPS_SUMMARY>  comma-separated short list, e.g. "fastapi,uvicorn,psycopg"
+#   <UV_IMAGE_SHA>          digest from ghcr.io/astral-sh/uv:X.Y.Z — pin to a SHA
+#   <SERVICE_PORT>          e.g. 8004
+#   <HEALTH_PORT>           e.g. 8005
+
+ARG PYTHON_VERSION=3.13
+ARG UID=1000
+ARG GID=1000
+
+# nosemgrep: dockerfile.security.missing-user.missing-user
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+# Pin uv to a SHA-resolved tag, not `latest`. Update via update-project.sh.
+COPY --from=ghcr.io/astral-sh/uv:<UV_IMAGE_SHA> /uv /bin/uv
+
+ENV UV_SYSTEM_PYTHON=1 \
+    UV_CACHE_DIR=/tmp/.cache/uv \
+    UV_LINK_MODE=copy \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# Copy dependency manifests first so layer caching works
+COPY pyproject.toml uv.lock ./
+COPY <SERVICE_NAME>/pyproject.toml ./<SERVICE_NAME>/
+
+# hadolint ignore=SC2015
+RUN --mount=type=cache,target=/tmp/.cache/uv \
+    uv sync --frozen --no-dev --extra <SERVICE_NAME> && \
+    find /app/.venv -type f -name "*.pyc" -delete && \
+    find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app/.venv -name "*.so" -exec strip --strip-unneeded {} \; 2>/dev/null || true
+
+COPY <SERVICE_NAME>/ ./<SERVICE_NAME>/
+
+# ────────────────────────────────────────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim
+
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG VCS_REF
+ARG UID=1000
+ARG GID=1000
+
+# OCI image annotations — required on every image.
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md
+LABEL org.opencontainers.image.title="<SERVICE_TITLE>" \
+      org.opencontainers.image.description="<SERVICE_DESCRIPTION>" \
+      org.opencontainers.image.authors="<AUTHOR_NAME> <<AUTHOR_EMAIL>>" \
+      org.opencontainers.image.url="https://github.com/<OWNER>/<REPO>" \
+      org.opencontainers.image.documentation="https://github.com/<OWNER>/<REPO>/blob/main/README.md" \
+      org.opencontainers.image.source="https://github.com/<OWNER>/<REPO>" \
+      org.opencontainers.image.vendor="<OWNER>" \
+      org.opencontainers.image.licenses="<LICENSE>" \
+      org.opencontainers.image.version="${BUILD_VERSION:-0.1.0}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.base.name="docker.io/library/python:${PYTHON_VERSION}-slim" \
+      com.<REPO>.service="<SERVICE_NAME>" \
+      com.<REPO>.dependencies="<PROJECT_DEPS_SUMMARY>" \
+      com.<REPO>.python.version="${PYTHON_VERSION}"
+
+# hadolint ignore=DL3008
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Non-root user with configurable UID/GID for bind-mount compatibility
+RUN groupadd -r -g ${GID} <SERVICE_NAME> && \
+    useradd -r -l -u ${UID} -g <SERVICE_NAME> -m -s /bin/bash <SERVICE_NAME> && \
+    mkdir -p /tmp /app /logs && \
+    chown -R <SERVICE_NAME>:<SERVICE_NAME> /tmp /app /logs
+
+WORKDIR /app
+
+COPY --from=builder --chown=<SERVICE_NAME>:<SERVICE_NAME> /app/.venv /app/.venv
+COPY --from=builder --chown=<SERVICE_NAME>:<SERVICE_NAME> /app/<SERVICE_NAME> /app/<SERVICE_NAME>
+
+# Startup script — supports STARTUP_DELAY for orchestrated boot
+# hadolint ignore=SC2016
+RUN printf '#!/bin/sh\nset -e\nsleep "${STARTUP_DELAY:-0}"\nexec /app/.venv/bin/python -m <SERVICE_NAME> "$@"\n' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:<HEALTH_PORT>/health || exit 1
+
+USER <SERVICE_NAME>:<SERVICE_NAME>
+
+ENV HOME=/home/<SERVICE_NAME> \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    UV_SYSTEM_PYTHON=1 \
+    UV_NO_CACHE=1 \
+    PATH="/app/.venv/bin:$PATH"
+
+EXPOSE <SERVICE_PORT> <HEALTH_PORT>
+VOLUME ["/logs"]
+
+# Run with: docker run --cap-drop=ALL --security-opt=no-new-privileges:true ...
+
+CMD ["/app/start.sh"]
