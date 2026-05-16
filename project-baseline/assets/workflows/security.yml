@@ -4,7 +4,6 @@
 # It is called by the build.yml workflow.
 # Workflow linting (actionlint) is handled by pre-commit (see .pre-commit-config.yaml).
 # Dockerfile linting (hadolint) is handled by docker-validate.yml.
-# Covers issue #72: https://github.com/SimplicityGuy/discogsography/issues/72
 name: Security
 
 on:
@@ -113,7 +112,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            extractor/target/
+            <RUST_DIR>/target/
           key: ${{ runner.os }}-cargo-security-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-security-
@@ -130,10 +129,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔍 Run cargo-audit (Rust advisory database scan)
-        run: just extractor-audit
+        run: just rust-audit
 
       - name: 🛡️ Run cargo-deny (Rust license and policy check)
-        run: just extractor-deny
+        run: just rust-deny
 
   secret-scanning:
     name: Secret Scanning

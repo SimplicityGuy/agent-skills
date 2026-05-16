@@ -1,15 +1,20 @@
 ---
+# Pre-commit config. SHA-pinned with `# frozen: <tag>` comments — bump via
+# `just update-hooks` (which calls `pre-commit autoupdate --freeze`).
+#
+# If your repo generates large files that legitimately need to be committed,
+# add them to the `check-added-large-files` exclude block (one regex per line,
+# joined by `|`). Otherwise leave that block off.
 exclude: '(^|/)package-lock\.json$'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: check-added-large-files
-        exclude: |
-          (?x)^(
-            \.planning/graphs/(graph\.(json|html)|\.last-build-snapshot\.json)|
-            graphify-out/graph\.(json|html)
-          )$
+        # exclude: |
+        #   (?x)^(
+        #     path/to/generated/large-file\.json
+        #   )$
       - id: check-executables-have-shebangs
       - id: check-json
       - id: check-merge-conflict
@@ -131,15 +136,19 @@ repos:
         types: [python]
         pass_filenames: false
         args: ["."]
+      # Rust hooks — drop this block if there's no Rust crate.
+      # If your Rust crate lives at the repo root, change `files:` to
+      # `'.*\.rs$'`. For a non-root crate, substitute `<RUST_DIR>` with the
+      # crate directory name.
       - id: cargo-fmt
         name: cargo fmt
-        entry: bash -c 'cd extractor && cargo fmt --check'
+        entry: just rust-fmt-check
         language: system
-        files: '^extractor/.*\.rs$'
+        files: '^<RUST_DIR>/.*\.rs$'
         pass_filenames: false
       - id: cargo-clippy
         name: cargo clippy
-        entry: bash -c 'cd extractor && cargo clippy --all-targets -- -D warnings'
+        entry: just rust-clippy
         language: system
-        files: '^extractor/.*\.rs$'
+        files: '^<RUST_DIR>/.*\.rs$'
         pass_filenames: false

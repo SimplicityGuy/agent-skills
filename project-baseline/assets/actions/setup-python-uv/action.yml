@@ -1,7 +1,7 @@
 ---
 name: "Setup Python and UV"
 description: "Setup Python with UV package manager and caching"
-author: "SimplicityGuy"
+author: "<OWNER>"
 
 inputs:
   python-version:

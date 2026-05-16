@@ -27,19 +27,14 @@ jobs:
       - name: 📋 Get all sub-projects with properties
         id: set-matrix
         run: |
-          # Define sub-projects with their properties
+          # Define sub-projects with their properties.
+          # Substitute the entries below for the services in this repo.
+          # `use_cache: true` is the default; set false for services where
+          # docker buildx local cache hurts (rare).
           cat << "EOF" > projects.json
           [
-            {"name": "api", "use_cache": true},
-            {"name": "brainzgraphinator", "use_cache": true},
-            {"name": "brainztableinator", "use_cache": true},
-            {"name": "dashboard", "use_cache": true},
-            {"name": "explore", "use_cache": true},
-            {"name": "extractor", "use_cache": true},
-            {"name": "graphinator", "use_cache": true},
-            {"name": "insights", "use_cache": true},
-            {"name": "schema-init", "use_cache": true},
-            {"name": "tableinator", "use_cache": true}
+            {"name": "<SERVICE_1>", "use_cache": true},
+            {"name": "<SERVICE_2>", "use_cache": true}
           ]
           EOF
 

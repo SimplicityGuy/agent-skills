@@ -11,7 +11,7 @@
 #   quality   lint, format, security, pip-audit
 #   test      test, test-cov, test-ci (plus test-<svc> in monorepos)
 #   docker    docker-build, docker-validate, up, down, logs, rebuild
-#   rust      extractor-*  (only when a Rust crate is present)
+#   rust      rust-*       (only when a Rust crate is present)
 #   node      install-js, test-js, update-npm  (only when Node is present)
 #   dev       dev, run, monitor
 
@@ -183,35 +183,37 @@ rebuild:
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Rust  (delete this whole block if no Rust crate)
+# Replace <RUST_DIR> with the crate directory. For root-level Cargo.toml use
+# `.` (and you can drop the `cd <RUST_DIR> &&` prefix entirely).
 # ──────────────────────────────────────────────────────────────────────────────
 
 [group('rust')]
-extractor-build:
-    cd extractor && cargo build --release
+rust-build:
+    cd <RUST_DIR> && cargo build --release
 
 [group('rust')]
-extractor-test:
-    cd extractor && cargo test
+rust-test:
+    cd <RUST_DIR> && cargo test
 
 [group('rust')]
-extractor-fmt:
-    cd extractor && cargo fmt
+rust-fmt:
+    cd <RUST_DIR> && cargo fmt
 
 [group('rust')]
-extractor-fmt-check:
-    cd extractor && cargo fmt --check
+rust-fmt-check:
+    cd <RUST_DIR> && cargo fmt --check
 
 [group('rust')]
-extractor-clippy:
-    cd extractor && cargo clippy --all-targets -- -D warnings
+rust-clippy:
+    cd <RUST_DIR> && cargo clippy --all-targets -- -D warnings
 
 [group('rust')]
-extractor-audit:
-    cd extractor && cargo audit
+rust-audit:
+    cd <RUST_DIR> && cargo audit
 
 [group('rust')]
-extractor-deny:
-    cd extractor && cargo deny check
+rust-deny:
+    cd <RUST_DIR> && cargo deny check
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Node  (delete this whole block if no package.json)

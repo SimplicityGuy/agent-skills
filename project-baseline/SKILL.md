@@ -81,7 +81,7 @@ The justfile is organized by group using just's `[group('name')]` attribute. Sta
 - `quality` — lint, lint-python, format, security, pip-audit
 - `test` — test, test-cov, test-ci (plus `test-<service>` per service in monorepos)
 - `docker` — docker-build, docker-validate, docker-compose-validate, up, down, logs, rebuild
-- `rust` (when Rust is present) — extractor-build, extractor-test, extractor-fmt, extractor-clippy, extractor-audit, extractor-deny
+- `rust` (when Rust is present) — rust-build, rust-test, rust-fmt, rust-fmt-check, rust-clippy, rust-audit, rust-deny
 - `node` (when Node is present) — install-js, test-js, test-js-cov, update-npm
 - `dev` — dev, run, monitor, check-errors
 
