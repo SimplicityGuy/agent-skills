@@ -1,0 +1,121 @@
+---
+# Top-level CI pipeline. Detects whether code (vs docs-only) changed, then
+# fans out to code-quality / security / tests / docker-validate, and finally
+# builds + pushes containers when running on main.
+#
+# Pattern matches discogsography. Every job that runs a tool calls `just <cmd>`
+# rather than inlining the command — keep that contract.
+#
+# Substitute:
+#   <REGISTRY>        usually "ghcr.io"
+#   <PYTHON_VERSION>  e.g. "3.13"
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 1 * * 6" # Weekly Saturday 01:00 UTC
+
+env:
+  CI: true
+  PYTHON_VERSION: "<PYTHON_VERSION>"
+  REGISTRY: <REGISTRY>
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code-changed: ${{ steps.filter.outputs.code-changed }}
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Detect changed file types
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" == "schedule" ]] || [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "code-changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          else
+            CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "$HEAD_SHA")
+          fi
+          NON_MD_FILES=$(echo "$CHANGED_FILES" | grep -v '\.md$' || true)
+          if [[ -z "$NON_MD_FILES" ]]; then
+            echo "code-changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "code-changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  run-code-quality:
+    uses: ./.github/workflows/code-quality.yml
+    secrets: inherit
+
+  run-security:
+    needs: [detect-changes, run-code-quality]
+    if: needs.detect-changes.outputs.code-changed == 'true'
+    uses: ./.github/workflows/security.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write
+
+  run-docker-validate:
+    needs: [detect-changes, run-code-quality]
+    if: needs.detect-changes.outputs.code-changed == 'true'
+    uses: ./.github/workflows/docker-validate.yml
+    secrets: inherit
+
+  run-tests:
+    needs: [detect-changes, run-code-quality]
+    if: needs.detect-changes.outputs.code-changed == 'true'
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+
+  aggregate-results:
+    runs-on: ubuntu-latest
+    needs:
+      - detect-changes
+      - run-code-quality
+      - run-tests
+      - run-security
+      - run-docker-validate
+    if: always()
+    steps:
+      - name: 📊 Check all pipeline results
+        env:
+          CODE_CHANGED: ${{ needs.detect-changes.outputs.code-changed }}
+          QUALITY: ${{ needs.run-code-quality.result }}
+          TESTS: ${{ needs.run-tests.result }}
+          SECURITY: ${{ needs.run-security.result }}
+          DOCKER: ${{ needs.run-docker-validate.result }}
+        run: |
+          echo "Quality: $QUALITY  Tests: $TESTS  Security: $SECURITY  Docker: $DOCKER"
+          if [[ "$QUALITY" == "failure" ]]; then echo "❌ Quality failed"; exit 1; fi
+          if [[ "$CODE_CHANGED" == "false" ]]; then exit 0; fi
+          if [[ "$TESTS" == "failure" || "$SECURITY" == "failure" || "$DOCKER" == "failure" ]]; then
+            echo "❌ One or more pipeline workflows failed"; exit 1
+          fi
+          echo "✅ All pipeline workflows passed"

@@ -1,0 +1,87 @@
+# syntax=docker/dockerfile:1
+#
+# Dockerfile for a Rust binary. Substitute placeholders:
+#   <CRATE_NAME>            cargo package name, e.g. "extractor"
+#   <SERVICE_TITLE>          e.g. "Discogsography Extractor"
+#   <SERVICE_DESCRIPTION>    one-line
+#   <OWNER>                  e.g. "SimplicityGuy"
+#   <REPO>                   e.g. "discogsography"
+#   <AUTHOR_NAME>            e.g. "Robert Wlodarczyk"
+#   <AUTHOR_EMAIL>           e.g. "robert@simplicityguy.com"
+#   <LICENSE>                e.g. "MIT"
+#   <RUST_VERSION>           e.g. "1.95"  — bump via update-project.sh
+
+ARG RUST_VERSION=<RUST_VERSION>
+
+# Build stage
+FROM rust:${RUST_VERSION}-slim AS builder
+
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Dependency-only build first for caching. Adjust paths if using a workspace.
+COPY Cargo.lock ./
+COPY <CRATE_NAME>/Cargo.toml ./
+
+RUN mkdir src && \
+    echo "fn main() {}" > src/main.rs && \
+    cargo build --release && \
+    rm -rf src
+
+COPY <CRATE_NAME>/src ./src
+
+RUN touch src/main.rs && \
+    cargo build --release
+
+# ────────────────────────────────────────────────────────────────────────────
+# Runtime stage
+FROM debian:13-slim
+
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG VCS_REF
+
+LABEL org.opencontainers.image.title="<SERVICE_TITLE>" \
+      org.opencontainers.image.description="<SERVICE_DESCRIPTION>" \
+      org.opencontainers.image.authors="<AUTHOR_NAME> <<AUTHOR_EMAIL>>" \
+      org.opencontainers.image.url="https://github.com/<OWNER>/<REPO>" \
+      org.opencontainers.image.documentation="https://github.com/<OWNER>/<REPO>/blob/main/README.md" \
+      org.opencontainers.image.source="https://github.com/<OWNER>/<REPO>" \
+      org.opencontainers.image.vendor="<OWNER>" \
+      org.opencontainers.image.licenses="<LICENSE>" \
+      org.opencontainers.image.version="${BUILD_VERSION:-0.1.0}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.base.name="docker.io/library/debian:13-slim" \
+      com.<REPO>.service="<CRATE_NAME>" \
+      com.<REPO>.rust.version="${RUST_VERSION}"
+
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3t64 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r <CRATE_NAME> && useradd -r -g <CRATE_NAME> <CRATE_NAME>
+
+RUN mkdir -p /logs && chown -R <CRATE_NAME>:<CRATE_NAME> /logs
+
+COPY --from=builder /app/target/release/<CRATE_NAME> /usr/local/bin/<CRATE_NAME>
+
+USER <CRATE_NAME>
+
+ENV LOG_LEVEL=INFO
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+VOLUME ["/logs"]
+
+ENTRYPOINT ["<CRATE_NAME>"]

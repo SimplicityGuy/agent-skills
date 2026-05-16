@@ -1,0 +1,183 @@
+# Sorted by table heading (alphabetical) within each top-level section.
+# Top-level order is fixed: [build-system] → [project] → [project.optional-dependencies] →
+# [dependency-groups] → [tool.*] (alphabetical) → [tool.uv] (last).
+#
+# Substitute placeholders before use:
+#   <PROJECT_NAME>         e.g. "my-service"
+#   <PROJECT_DESCRIPTION>  one-line description
+#   <AUTHOR_NAME>          from git config user.name
+#   <AUTHOR_EMAIL>         from git config user.email
+#   <PYTHON_VERSION>       e.g. "3.13"
+#   <LICENSE>              e.g. "MIT" or "PolyForm-Noncommercial-1.0.0"
+#   <FIRST_PARTY_PACKAGES> JSON-ish list, e.g. ["my_service", "common"]
+#   <COVERAGE_SOURCES>     JSON-ish list of dirs to measure
+#
+# After substitution, run `just lint` — the format hooks will normalize spacing.
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[project]
+authors = [{name = "<AUTHOR_NAME>", email = "<AUTHOR_EMAIL>"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    # Add runtime dependencies here, alphabetically sorted, with floor constraints (>=X.Y.Z)
+]
+description = "<PROJECT_DESCRIPTION>"
+license = {text = "<LICENSE>"}
+name = "<PROJECT_NAME>"
+requires-python = ">=<PYTHON_VERSION>"
+version = "0.1.0"
+
+[project.optional-dependencies]
+# Add per-service or per-feature extras here. Drop this section if not needed.
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.4",
+    "mypy>=1.20.1",
+    "pip-audit>=2.10.0",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.1.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.8.0",
+    "ruff>=0.15.10",
+]
+
+[tool.bandit]
+exclude_dirs = [".venv", "tests", "venv"]
+skips = ["B101", "B108"]  # B101=assert_used, B108=hardcoded /tmp
+
+[tool.coverage.report]
+exclude_lines = [
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+fail_under = 85
+precision = 2
+show_missing = true
+
+[tool.coverage.run]
+omit = ["*/tests/*", "*/__init__.py"]
+relative_files = true
+source = <COVERAGE_SOURCES>
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/<PROJECT_NAME_UNDERSCORED>"]
+
+[tool.mdformat]
+end_of_line = "lf"
+number = false
+wrap = "no"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+no_implicit_optional = true
+python_version = "<PYTHON_VERSION>"
+strict_equality = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+exclude = "^tests/"
+
+[[tool.mypy.overrides]]
+disallow_untyped_decorators = false
+module = "tests.*"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q --strict-markers --tb=short -n auto --dist loadfile"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "strict"
+minversion = "8.0"
+python_classes = ["Test*"]
+python_files = ["*_test.py", "test_*.py"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+timeout = 60
+timeout_method = "thread"
+markers = [
+    "integration: integration tests requiring external services (deselect with '-m \"not integration\"')",
+]
+
+[tool.ruff]
+line-length = 150
+target-version = "py<PYTHON_VERSION_NODOT>"
+
+[tool.ruff.format]
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = [
+    "B008",  # function calls in argument defaults
+    "C901",  # too complex
+    "E501",  # line too long, handled by ruff format
+    "S101",  # use of assert
+]
+select = [
+    "ARG",   # flake8-unused-arguments
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "I",     # isort
+    "PLC",   # pylint conventions
+    "PTH",   # flake8-use-pathlib
+    "RUF",   # ruff-specific rules
+    "S",     # bandit security rules
+    "SIM",   # flake8-simplify
+    "T20",   # flake8-print
+    "TCH",   # flake8-type-checking
+    "UP",    # pyupgrade
+    "W",     # pycodestyle warnings
+    "W191",  # tab indentation
+]
+unfixable = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = <FIRST_PARTY_PACKAGES>
+lines-after-imports = 2
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+split-on-trailing-comma = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"scripts/*" = ["T201", "S108"]                # CLI scripts use print, /tmp paths
+"tests/**/*.py" = ["PLC", "S105", "T201"]     # tests: pylint conventions, hardcoded passwords, prints
+
+# uv: restrict resolution to platforms we actually run on. Skipping this lets
+# uv try resolving for iOS / esoteric platforms and corrupting the lockfile.
+[tool.uv]
+environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]

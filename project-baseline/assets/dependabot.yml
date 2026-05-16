@@ -1,0 +1,126 @@
+---
+# Dependabot config. Keep only the ecosystems this repo actually has.
+# Substitute placeholders:
+#   <OWNER>             e.g. "SimplicityGuy"
+#   <SERVICE_DIRS>      list of Python service dirs (drop if not a monorepo)
+#   <DOCKERFILE_DIRS>   list of dirs containing Dockerfiles
+version: 2
+updates:
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci"
+    assignees:
+      - "<OWNER>"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # ── Docker base images ────────────────────────────────────────────────────
+  # Drop this block if the repo doesn't ship containers.
+  # Use `directories:` (plural) for monorepos with multiple Dockerfiles;
+  # use `directory: "/"` for single-Dockerfile-at-root repos.
+  - package-ecosystem: "docker"
+    directories: <DOCKERFILE_DIRS>
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+    assignees:
+      - "<OWNER>"
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+
+  # ── Rust (cargo) ──────────────────────────────────────────────────────────
+  # Drop this block if there's no Cargo.toml.
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "rust"
+    assignees:
+      - "<OWNER>"
+
+  # ── Node (npm) ────────────────────────────────────────────────────────────
+  # Drop this block if there's no package.json.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    assignees:
+      - "<OWNER>"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  # ── Python (pip / uv) ─────────────────────────────────────────────────────
+  # uv is not yet a first-class ecosystem in Dependabot, but `pip` works
+  # against pyproject.toml. For monorepos, list every service dir.
+  - package-ecosystem: "pip"
+    directories: <SERVICE_DIRS>
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    assignees:
+      - "<OWNER>"
+    open-pull-requests-limit: 10
+    groups:
+      python-production:
+        dependency-type: "production"
+        patterns:
+          - "*"
+      python-development:
+        dependency-type: "development"
+        patterns:
+          - "*"
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

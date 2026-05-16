@@ -1,0 +1,141 @@
+<!--
+  README.md scaffold. Substitute placeholders below, then run the
+  `readme.skill.md` skill to fill out each section properly:
+    <OWNER>                 GitHub owner, e.g. "SimplicityGuy"
+    <REPO>                  repo name, e.g. "my-project"
+    <PROJECT_NAME>          human-readable, e.g. "MyProject"
+    <ONE_LINE_DESCRIPTION>  bold blurb under the banner
+    <PYTHON_VERSION>        e.g. "3.13"
+    <LICENSE_BADGE>         e.g. "MIT" or "PolyForm--NC--1.0.0"
+
+  Layout (top to bottom — keep this exact order):
+    1. Centered header block (banner image — NO H1 — bold description)
+    2. Badge rows (CI/CD first, then static info badges)
+    3. Centered nav bar (3-5 anchor links with emoji prefixes)
+    4. 🎯 What is <PROJECT_NAME>?   — what it does, who it's for
+    5. 🏛️ Architecture Overview      — services table + Mermaid diagrams
+    6. 🌟 Key Features               — 5-10 differentiators
+    7. 🚀 Quick Start                — minimal setup + service URLs
+    8. 📖 Documentation              — categorized doc index
+    9. 👨‍💻 Development                — day-to-day commands, CI/CD, contributing
+   10. 🛠️ Technology Stack           — language, frameworks, infra
+   11. 💬 Support & Community        — issues, discussions, contact
+   12. 📜 License                    — license text + link
+   13. 🙏 Acknowledgments            — credits
+
+  See `readme.skill.md` for the full content guide for each section.
+-->
+
+<div align="center">
+
+<img src="docs/assets/banner_dark.png" alt="<PROJECT_NAME>" width="400" />
+
+<!-- Group 1: CI/CD status badges -->
+[![Build](https://github.com/<OWNER>/<REPO>/actions/workflows/build.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/build.yml)
+[![Code Quality](https://github.com/<OWNER>/<REPO>/actions/workflows/code-quality.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/code-quality.yml)
+[![Tests](https://github.com/<OWNER>/<REPO>/actions/workflows/test.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/<OWNER>/<REPO>/branch/main/graph/badge.svg)](https://codecov.io/gh/<OWNER>/<REPO>)
+
+<!-- Group 2: Static info badges (license, language, tools) -->
+![License: <LICENSE_BADGE>](https://img.shields.io/badge/license-<LICENSE_BADGE>-blue)
+![Python <PYTHON_VERSION>+](https://img.shields.io/badge/python-<PYTHON_VERSION>+-blue.svg)
+[![uv](https://img.shields.io/badge/uv-package%20manager-orange?logo=python)](https://github.com/astral-sh/uv)
+[![just](https://img.shields.io/badge/just-task%20runner-blue)](https://just.systems)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
+[![Bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](https://www.docker.com/)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-powered-orange?logo=anthropic&logoColor=white)](https://claude.ai/code)
+
+<!--
+  Optional extra badges by stack — uncomment as applicable.
+
+  Rust:
+  ![Rust](https://img.shields.io/badge/rust-stable-orange.svg)
+  [![Cargo](https://img.shields.io/badge/cargo-rust%20package%20manager-brown)](https://doc.rust-lang.org/cargo/)
+  [![Clippy](https://img.shields.io/badge/clippy-rust%20linter-green)](https://github.com/rust-lang/rust-clippy)
+
+  Node:
+  ![Node 24+](https://img.shields.io/badge/node-24+-green.svg)
+-->
+
+**<ONE_LINE_DESCRIPTION>**
+
+</div>
+
+<p align="center">
+
+[🚀 Quick Start](#-quick-start) | [📖 Documentation](#-documentation) | [🌟 Features](#-key-features) | [💬 Community](#-support--community)
+
+</p>
+
+## 🎯 What is <PROJECT_NAME>?
+
+<!-- One paragraph: what it does, who it's for. See readme.skill.md § 4. -->
+
+## 🏛️ Architecture Overview
+
+### ⚙️ Core Services
+
+| Service | Purpose | Key Technologies |
+| --- | --- | --- |
+| **<service>** | … | `FastAPI`, `psycopg`, … |
+
+```mermaid
+graph TD
+    %% Replace with the actual architecture. Follow assets/docs/mermaid-conventions.md.
+    A[("🌐 Source")] --> B[["⚡ Service"]] --> C[("🐘 PostgreSQL")]
+```
+
+See [Architecture Overview](docs/architecture.md) for detailed diagrams.
+
+## 🌟 Key Features
+
+<!-- 5-10 differentiators. See readme.skill.md § 6. -->
+
+## 🚀 Quick Start
+
+```bash
+git clone https://github.com/<OWNER>/<REPO>.git
+cd <REPO>
+docker compose up -d
+```
+
+## 📖 Documentation
+
+<!-- Categorized doc index. See readme.skill.md § 8 and the `comprehensive-docs` skill. -->
+
+## 👨‍💻 Development
+
+```bash
+just install        # sync deps + install pre-commit hooks
+just lint           # run all pre-commit hooks
+just test-cov       # run tests with coverage
+just update-deps    # bump minor/patch deps (add --major for major bumps)
+```
+
+See [Development Guide](docs/development.md) and [Contributing Guide](docs/contributing.md).
+
+## 🛠️ Technology Stack
+
+<!-- Language(s), frameworks, infrastructure. See readme.skill.md § 10. -->
+
+## 💬 Support & Community
+
+- **Issues**: [GitHub Issues](https://github.com/<OWNER>/<REPO>/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/<OWNER>/<REPO>/discussions)
+
+## 📜 License
+
+This project is licensed under the [<LICENSE_BADGE> License](LICENSE).
+
+## 🙏 Acknowledgments
+
+<!-- Credits. -->
+
+---
+
+<div align="center">
+Made with ❤️ by <a href="https://github.com/<OWNER>"><OWNER></a>
+</div>

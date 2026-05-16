@@ -1,0 +1,51 @@
+---
+# Test workflow. Runs `just test-cov` and uploads coverage to codecov.
+# For monorepos, fan out to multiple test-<service> jobs each running in
+# parallel — discogsography is the reference. This template covers the
+# single-package case; copy/adapt the jobs for multi-service.
+name: Test
+
+on:
+  workflow_call:
+
+env:
+  CI: true
+  PYTHON_VERSION: "<PYTHON_VERSION>"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🔀 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🔧 Setup Python and UV
+        uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 🔧 Setup Just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: just install
+
+      - name: 🧪 Run tests with coverage
+        run: just test-cov
+
+      - name: 📊 Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: false
