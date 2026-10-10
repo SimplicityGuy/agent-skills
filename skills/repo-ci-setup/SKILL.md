@@ -1,6 +1,6 @@
 ---
 name: repo-ci-setup
-description: Use when setting up or auditing GitHub repo automation - Dependabot config, Dependabot labels, SHA-pinned GitHub Actions workflows, required status checks that block PRs, or Node 20 deprecation notices. Triggers on "dependabot", "dependabot.yml", "required checks", "block PRs", "pin actions", "node20 deprecated", "branch ruleset".
+description: Use when setting up or auditing GitHub repo automation - Dependabot config, Dependabot labels, SHA-pinned GitHub Actions workflows, required status checks that block PRs, Node 20 deprecation notices, or rolling the same Dependabot setup out across every repo an owner has. Triggers on "all repos", "fleet sweep", "red dependabot PRs", "dependabot", "dependabot.yml", "required checks", "block PRs", "pin actions", "node20 deprecated", "branch ruleset".
 ---
 
 # Repo CI Setup
@@ -93,6 +93,39 @@ Work from a branch in `homelab`.
 8. Commit and open the PR. Merge only when CI is green.
 
 To enforce a fleet-wide setting (for example `allow_merge_commit = true`), pin it in `modules/owner/repositories.tf` on `github_repository.this` so it survives inventory regeneration. Archived repos cannot change settings and keep their observed values.
+
+## Fleet Sweep
+
+Use when the same Dependabot setup must land on every repo an owner has. Run it from one coordinating session that fans out one agent per repo, then re-checks real state itself, because agent "MERGED" reports are not reliable.
+
+Scope it explicitly: the owners to cover (for example SimplicityGuy and Groovemap-Music), skipping other owners and forks. Enumerate with `gh repo list OWNER --no-archived --source --json name`. Repos whose clone is not local still count, so look them up on GitHub before calling them absent.
+
+The original request, to reuse:
+
+> For all of the repos, please do the following:
+> - merge any open Dependabot PRs
+> - add a Dependabot configuration that will create 1 PR per ecosystem; one for security issues and one for regular version bumps
+> - ensure all repos are configured to run the github workflows on dependabot PRs
+>
+> Once the PR for the dependabot update configuration is created and green, merge it. Do this for all repos owned by X and Y. Skip any other owners; skip forks too.
+
+Per repo, in order:
+
+1. Merge open Dependabot PRs that are green or have no CI. Do not use `--admin` and do not skip checks.
+2. Open a config PR with one version-updates group and one security-updates group per ecosystem the repo actually has, then merge it when green.
+3. Confirm workflows run on Dependabot PRs. Dependabot PRs read the **Dependabot** secrets store, not Actions secrets. List what the workflows reference and copy each into Dependabot secrets, using the homelab `scripts/seal` flow when the value is not readable. A secret missing from both stores only matters if its step runs.
+4. Create every label the config references, then adopt them into OpenTofu (see above).
+5. Investigate each red Dependabot PR to its cause and fix that, not the symptom. Close a PR only when it is superseded by a green one.
+
+Known red-PR causes:
+
+- **`pip` in a uv project.** Dependabot edits `pyproject.toml` but cannot rewrite `uv.lock`, so `uv lock --check` fails and a rebase cannot fix it. Use the `uv` ecosystem.
+- **Pinned vendor or license manifests.** Bumps trip files such as `vendor-licenses.mjs` or `THIRD_PARTY_NOTICES.md`. Update the manifest on the Dependabot branch, or ahead of the next bump.
+- **Measured version caps.** Ignore minor and major updates for a guarded dependency (for example litellm) and keep patch and security updates. Raising the cap is an operator decision.
+- **Shared scanner failures on main.** One pre-existing audit finding turns every PR red. Fix it once in a combined PR.
+- **Direct pins that conflict.** For example `pydantic-core` pinned while the parent requires another version. Drop the direct pin.
+
+Finish by re-querying every repo for open PRs and red checks. Dependabot reopens regrouped PRs after a config merge, so a second pass is normal. Report what still needs an operator decision rather than forcing it.
 
 ## Verify Before Finishing
 
