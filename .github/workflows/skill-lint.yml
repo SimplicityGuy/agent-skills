@@ -17,7 +17,7 @@ jobs:
     name: agnix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: agent-sh/agnix@19997c99b11b74d42346615334d2150bee7e40d0 # v0.57.0
         with:
           path: skills
@@ -27,7 +27,7 @@ jobs:
     name: skill-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: thedaviddias/skill-check@a30839cf1583b720b0785d51b3b8b73a7cedacf1 # v1.2.0
-        with:
-          path: skills
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Run the CLI directly: the thedaviddias/skill-check action is pinned to the
+      # deprecated node20 runtime and has no newer release. Same CLI, same exit codes.
+      - run: npx --yes skill-check@1.2.0 skills

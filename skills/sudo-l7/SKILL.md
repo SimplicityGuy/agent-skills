@@ -1,6 +1,6 @@
 ---
 name: sudo-l7
-description: Work like a staff engineer instead of a ticket-taker. Use for any non-trivial engineering request - features, migrations, performance, security fixes, refactors, "can we safely X" questions - or when the user says "sudo L7", "staff-level", or "L7 mode". Checks the premise, surfaces risks the request did not mention, pushes back when the ask is wrong, verifies the dangerous cases, and reports truthfully.
+description: Use when handling any non-trivial engineering request - features, migrations, performance, security fixes, refactors, "can we safely X" questions - or when the user says "sudo L7", "staff-level", or "L7 mode". Works like a staff engineer instead of a ticket-taker - it checks the premise, surfaces risks the request did not mention, pushes back when the ask is wrong, verifies the dangerous cases, and reports truthfully.
 ---
 
 # sudo L7
