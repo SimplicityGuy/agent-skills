@@ -5,7 +5,7 @@ description: Use when setting up or auditing GitHub repo automation - Dependabot
 
 # Repo CI Setup
 
-Set up Dependabot, pinned workflows, and required checks for a SimplicityGuy repo the way they were done for `agent-skills`, modeled on `homelab`. Repo settings (rulesets, labels, merge methods) are managed as code in `homelab/infra/opentofu/github`, so they are changed there and not by hand in the GitHub UI.
+Set up Dependabot, pinned workflows, and required checks that block PRs on a GitHub repo. If your repo settings (rulesets, labels, merge methods) are managed as code, for example with OpenTofu or Terraform, make or record each change there too instead of leaving it as hand-edited drift.
 
 ## When to Use
 
@@ -17,7 +17,7 @@ Set up Dependabot, pinned workflows, and required checks for a SimplicityGuy rep
 
 ## Dependabot
 
-Copy the shape of `homelab/.github/dependabot.yml`, keeping only the ecosystems the repo actually has:
+Use this shape, keeping only the ecosystems the repo actually has:
 
 ```yaml
 version: 2
@@ -36,7 +36,7 @@ updates:
       - "dependencies"
       - "ci"
     assignees:
-      - "SimplicityGuy"
+      - "your-github-username"
     groups:
       actions:
         patterns:
@@ -51,7 +51,7 @@ updates:
 The `labels:` list names labels but does not reliably create them, so a missing label means a silently unlabelled PR.
 
 1. Create them on the repo first: `dependencies` color `0366d6`, `ci` color `ededed`, and `python` / `docker` / `javascript` as needed.
-2. Get them under management: regenerate the homelab inventory (see below) so the labels are adopted into OpenTofu.
+2. If repo settings are managed as code, add the labels there so the next apply does not remove them.
 
 ## Workflows
 
@@ -72,33 +72,18 @@ When replacing an action with its CLI, diff the defaults. Actions often set inpu
 
 ## Required Checks That Block PRs
 
-Blocking is a repo ruleset, managed in the homelab OpenTofu `github` module.
+Blocking is a repo ruleset.
 
 1. Get the workflow merged or at least run once, since GitHub only offers checks it has seen.
 2. Create the ruleset on the live repo with the REST API: target the default branch (`~DEFAULT_BRANCH`), no bypass actors, rules `deletion`, `non_fast_forward`, `pull_request` (0 required approvals), and `required_status_checks` with one entry per job name and `integration_id` `15368` (GitHub Actions).
-3. Adopt it into OpenTofu (below). The module must support `required_status_checks` rules; it does as of the `agent-skills` change.
+3. If repo settings are managed as code, adopt the ruleset there so it does not drift. Make sure your tooling supports `required_status_checks` rules.
 4. Remember the consequence: direct pushes to the default branch are blocked, so all changes go through a PR.
-
-## Adopting Repo Settings Into homelab
-
-Work from a branch in `homelab`.
-
-1. Make the live change first (ruleset, labels, merge methods). The inventory is generated from live GitHub.
-2. Regenerate: `scripts/github-inventory --owner SimplicityGuy`.
-3. Update the count assertions in `infra/opentofu/github/tests/owner.tftest.hcl` (repos, rulesets, labels) to match.
-4. Run `tofu test` in a clean copy of the module directory without `.terraform`: after `scripts/tofu` has run, `.terraform` points at the S3 backend and a plain `tofu init -backend=false` cannot reach it. Run `tofu init -backend=false` in the clean copy first, since new test runs need modules registered.
-5. Plan, then apply the saved plan: `scripts/tofu -m github plan -input=false -out=PLAN`, review it (adoption should be imports only, with no adds, changes, or destroys), then `scripts/tofu -m github apply PLAN`.
-6. Verify: `scripts/github-state-reconcile`, then `scripts/github-coverage-report -o infra/opentofu/github/COVERAGE.md` and its `--check`.
-7. If gitleaks flags an `address_key` string in `desired-state.json` as a generic API key, add its `file:rule:line` fingerprint to `.gitleaksignore`. These are false positives, and the fingerprints are line-number based, so they may need refreshing after the next regeneration.
-8. Commit and open the PR. Merge only when CI is green.
-
-To enforce a fleet-wide setting (for example `allow_merge_commit = true`), pin it in `modules/owner/repositories.tf` on `github_repository.this` so it survives inventory regeneration. Archived repos cannot change settings and keep their observed values.
 
 ## Fleet Sweep
 
 Use when the same Dependabot setup must land on every repo an owner has. Run it from one coordinating session that fans out one agent per repo, then re-checks real state itself, because agent "MERGED" reports are not reliable.
 
-Scope it explicitly: the owners to cover (for example SimplicityGuy and Groovemap-Music), skipping other owners and forks. Enumerate with `gh repo list OWNER --no-archived --source --json name`. Repos whose clone is not local still count, so look them up on GitHub before calling them absent.
+Scope it explicitly: the owners to cover (for example `org-a` and `org-b`), skipping other owners and forks. Enumerate with `gh repo list OWNER --no-archived --source --json name`. Repos whose clone is not local still count, so look them up on GitHub before calling them absent.
 
 The original request, to reuse:
 
@@ -107,14 +92,14 @@ The original request, to reuse:
 > - add a Dependabot configuration that will create 1 PR per ecosystem; one for security issues and one for regular version bumps
 > - ensure all repos are configured to run the github workflows on dependabot PRs
 >
-> Once the PR for the dependabot update configuration is created and green, merge it. Do this for all repos owned by X and Y. Skip any other owners; skip forks too.
+> Once the PR for the dependabot update configuration is created and green, merge it. Do this for all repos owned by org-a and org-b. Skip any other owners; skip forks too.
 
 Per repo, in order:
 
 1. Merge open Dependabot PRs that are green or have no CI. Do not use `--admin` and do not skip checks.
 2. Open a config PR with one version-updates group and one security-updates group per ecosystem the repo actually has, then merge it when green.
-3. Confirm workflows run on Dependabot PRs. Dependabot PRs read the **Dependabot** secrets store, not Actions secrets. List what the workflows reference and copy each into Dependabot secrets, using the homelab `scripts/seal` flow when the value is not readable. A secret missing from both stores only matters if its step runs.
-4. Create every label the config references, then adopt them into OpenTofu (see above).
+3. Confirm workflows run on Dependabot PRs. Dependabot PRs read the **Dependabot** secrets store, not Actions secrets. List what the workflows reference and copy each into Dependabot secrets, using your secrets tooling when you cannot read the value, and never paste values into chat. A secret missing from both stores only matters if its step runs.
+4. Create every label the config references, and record them in your settings-as-code if you have any.
 5. Investigate each red Dependabot PR to its cause and fix that, not the symptom. Close a PR only when it is superseded by a green one.
 
 Known red-PR causes:
@@ -131,7 +116,7 @@ Finish by re-querying every repo for open PRs and red checks. Dependabot reopens
 
 - The PR's required checks pass, and the first Dependabot run opens PRs with the expected labels and commit prefix.
 - The deprecation notice is gone from the CI log.
-- A final plan shows no changes.
+- If settings are managed as code, a final plan shows no changes.
 
 ## Pitfalls
 
