@@ -1,0 +1,11 @@
+# Validate for both tools this repo is distributed to (see README "Install").
+tools = ["claude-code", "codex"]
+
+# AS-013 flags file references deeper than one level inside a skill. In these two
+# skills the flagged paths are examples of the *user's* project layout
+# (assets/static/favicons/...) or part of a remote URL (assets/badge/v2.json),
+# not files bundled with the skill. Scoped per file so AS-013 still checks the
+# bundled references/ of every other skill.
+[[overrides]]
+paths = ["skills/brand-asset-audit/SKILL.md", "skills/readme/SKILL.md"]
+disabled_rules = ["AS-013"]
