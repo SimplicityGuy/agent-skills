@@ -1,0 +1,13 @@
+{
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "A collection of agent skills: brand asset audits, comprehensive docs, READMEs, deep bug hunts, and staff-level engineering.",
+  "author": {
+    "name": "Robert Wlodarczyk",
+    "url": "https://github.com/SimplicityGuy"
+  },
+  "homepage": "https://github.com/SimplicityGuy/agent-skills",
+  "repository": "https://github.com/SimplicityGuy/agent-skills",
+  "license": "MIT",
+  "keywords": ["skills", "claude-code", "codex"]
+}
