@@ -68,7 +68,7 @@ The notice names the offending actions. For each, read its `action.yml` and chec
 - `node20`: bump to a release that declares `node24` (`actions/checkout` v7 does).
 - Still `node20` with no newer release: stop using the action and run the same tool's CLI in a `run:` step with a pinned version.
 
-When replacing an action with its CLI, diff the defaults. Actions often set inputs the CLI does not: for `skill-check` the action defaulted `security-scan` to false while the CLI defaults it on, and the scan failed the job with zero findings until `--no-security-scan` was added. Read the action's `index.js` to see the exact flags it passes.
+When replacing an action with its CLI, diff the defaults. Actions often set inputs the CLI does not: for `skill-check` the action defaulted `security-scan` to false while the CLI defaults it on, and the scan failed the job with zero findings until `--no-security-scan` was added. The cause was a missing `SNYK_TOKEN`: the scanner (Snyk Agent Scan) needs an account token and exits non-zero without one. Turning the scan on means adding that token as a repo secret, and fork PRs will not receive it. Read the action's `index.js` to see the exact flags it passes.
 
 ## Required Checks That Block PRs
 
