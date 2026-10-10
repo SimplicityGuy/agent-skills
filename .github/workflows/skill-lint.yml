@@ -29,5 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Run the CLI directly: the thedaviddias/skill-check action is pinned to the
-      # deprecated node20 runtime and has no newer release. Same CLI, same exit codes.
-      - run: npx --yes skill-check@1.2.0 skills
+      # deprecated node20 runtime and has no newer release. The action defaulted
+      # security-scan to false; the CLI defaults it on, so turn it off to match.
+      - run: npx --yes skill-check@1.2.0 skills --no-security-scan

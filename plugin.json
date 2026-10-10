@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-skills",
   "version": "1.0.0",
-  "description": "A collection of agent skills: brand asset audits, comprehensive docs, READMEs, deep bug hunts, and staff-level engineering.",
+  "description": "A collection of agent skills: brand asset audits, comprehensive docs, READMEs, deep bug hunts, repo CI setup, and staff-level engineering.",
   "author": {
     "name": "Robert Wlodarczyk",
     "url": "https://github.com/SimplicityGuy"
