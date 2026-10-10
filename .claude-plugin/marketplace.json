@@ -8,7 +8,7 @@
     {
       "name": "agent-skills",
       "source": "./",
-      "description": "Brand asset audits, comprehensive docs, READMEs, deep bug hunts, and staff-level engineering."
+      "description": "Brand asset audits, comprehensive docs, READMEs, deep bug hunts, repo CI setup, and staff-level engineering."
     }
   ]
 }
