@@ -1,6 +1,6 @@
 # Agent Skills
 
-A collection of [Agent Skills](https://agentskills.io) for Claude Code and other compatible agents. Each skill lives in `skills/<name>/SKILL.md`, with optional `references/` and other supporting files alongside it.
+A collection of [Agent Skills](https://agentskills.io) for Claude Code, Codex, and other compatible agents. Each skill lives in `skills/<name>/SKILL.md`, with optional `references/` and other supporting files alongside it.
 
 ## Available Skills
 
@@ -37,11 +37,15 @@ Then install `agent-skills` from the Plugins directory. Update later with `codex
 
 Any tool that follows the [Agent Skills](https://agentskills.io) layout can load the skill folders directly:
 
+Run from the root of a clone of this repo:
+
 ```bash
 # Claude Code (user-level)
+mkdir -p ~/.claude/skills
 ln -s "$PWD"/skills/* ~/.claude/skills/
 
 # Codex (user-level)
+mkdir -p ~/.agents/skills
 ln -s "$PWD"/skills/* ~/.agents/skills/
 ```
 
@@ -77,7 +81,12 @@ Step-by-step instructions for Claude to follow.
 
 ## CI
 
-Pull requests are checked by skill linters (see `.github/workflows/`); the check is required to merge.
+The `Skill Lint` workflow (`.github/workflows/skill-lint.yml`) runs two linters over `skills/` on every pull request and on pushes to `main`:
+
+- [agnix](https://github.com/agent-sh/agnix) (`agnix` job), configured for Claude Code
+- [skill-check](https://github.com/thedaviddias/skill-check) (`skill-check` job)
+
+Both jobs are required status checks on `main` via a `protect-main` ruleset, managed in the [homelab](https://github.com/SimplicityGuy/homelab) OpenTofu config. Changes to `main` go through a pull request.
 
 ## License
 
