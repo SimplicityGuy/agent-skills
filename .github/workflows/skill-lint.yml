@@ -21,7 +21,7 @@ jobs:
       - uses: agent-sh/agnix@19997c99b11b74d42346615334d2150bee7e40d0 # v0.57.0
         with:
           path: skills
-          target: claude-code
+          config: .agnix.toml
 
   skill-check:
     name: skill-check
