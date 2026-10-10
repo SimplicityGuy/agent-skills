@@ -1,0 +1,29 @@
+---
+# Dependabot config for agent-skills. Mirrors the layout used in
+# SimplicityGuy/homelab for cross-project consistency, scoped down to the one
+# ecosystem this repo has:
+#   - github-actions: workflow action pins (SHA-pinned, with a version comment)
+#
+# Labels named below must exist on the repo; they are declared in the homelab
+# OpenTofu github module via its inventory.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci"
+    assignees:
+      - "SimplicityGuy"
+    groups:
+      actions:
+        patterns:
+          - "*"
