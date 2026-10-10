@@ -1,0 +1,33 @@
+name: Skill Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agnix:
+    name: agnix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: agent-sh/agnix@19997c99b11b74d42346615334d2150bee7e40d0 # v0.57.0
+        with:
+          path: skills
+          target: claude-code
+
+  skill-check:
+    name: skill-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: thedaviddias/skill-check@a30839cf1583b720b0785d51b3b8b73a7cedacf1 # v1.2.0
+        with:
+          path: skills
