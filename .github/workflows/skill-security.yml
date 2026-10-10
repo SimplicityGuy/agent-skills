@@ -1,0 +1,59 @@
+name: Skill Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-security-${{ github.ref }}
+  cancel-in-progress: true
+
+# Both scanners run static-only (no LLM judge) so no API keys or secrets are
+# needed and fork PRs work. To add the LLM layer later, set a repo secret and
+# drop --no-llm (skillspector, NVIDIA_INFERENCE_KEY) or add --use-llm
+# (skill-scanner, SKILL_SCANNER_LLM_API_KEY).
+jobs:
+  skill-scanner:
+    name: cisco skill-scanner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: Scan skills
+        run: >
+          uvx --from cisco-ai-skill-scanner==2.2.2 skill-scanner scan-all skills
+          --recursive --policy balanced --fail-on-severity high
+          --format sarif --output skill-scanner.sarif
+      - name: Upload SARIF
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.fork != true }}
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: skill-scanner.sarif
+          category: skill-scanner
+
+  skillspector:
+    name: nvidia skillspector
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: Scan skills
+        run: >
+          uvx --python 3.12 --from git+https://github.com/NVIDIA/skillspector.git@v2.12.0
+          skillspector scan skills --no-llm --baseline .skillspector-baseline.yaml --format sarif --output skillspector.sarif
+      - name: Upload SARIF
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.fork != true }}
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: skillspector.sarif
+          category: skillspector
