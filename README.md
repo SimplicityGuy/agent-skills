@@ -10,7 +10,9 @@ A collection of [Agent Skills](https://agentskills.io) for Claude Code, Codex, a
 | [comprehensive-docs](skills/comprehensive-docs/SKILL.md) | Build a full `docs/` suite — index, categorized guides, role-based navigation, consistent formatting |
 | [deep-bug-hunt](skills/deep-bug-hunt/SKILL.md) | Multi-agent bug-hunt expedition: lens-based finders, adversarial verification, dedup, and filing of verified defects |
 | [readme](skills/readme/SKILL.md) | Create or restructure a project's root README with the standard section layout and emoji-prefixed headers |
-| [repo-ci-setup](skills/repo-ci-setup/SKILL.md) | Set up Dependabot, SHA-pinned workflows, and required checks that block PRs, with repo settings managed in homelab OpenTofu |
+| [dependabot-setup](skills/dependabot-setup/SKILL.md) | Configure Dependabot on one repo, audit and fix an existing repo, or sweep a whole fleet |
+| [repo-ci-setup](skills/repo-ci-setup/SKILL.md) | SHA-pinned workflows and required checks that block PRs |
+| [homelab-github-settings](skills/homelab-github-settings/SKILL.md) | Adopt live SimplicityGuy repo settings (rulesets, labels, merge methods) into the homelab OpenTofu github module |
 | [sudo-l7](skills/sudo-l7/SKILL.md) | Staff-engineer working mode: check the premise, surface unmentioned risks, push back, verify, report truthfully |
 
 ## Install
