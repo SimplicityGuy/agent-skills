@@ -20,10 +20,10 @@ This repo is both a Claude Code plugin marketplace and a Codex plugin marketplac
 
 ```bash
 claude plugin marketplace add SimplicityGuy/agent-skills
-claude plugin install agent-skills@agent-skills
+claude plugin install agent-skills@simplicityguy
 ```
 
-Or inside a session: `/plugin marketplace add SimplicityGuy/agent-skills`, then `/plugin install agent-skills@agent-skills`. Skills are namespaced by plugin, e.g. `/agent-skills:readme`.
+Or inside a session: `/plugin marketplace add SimplicityGuy/agent-skills`, then `/plugin install agent-skills@simplicityguy`. Skills are namespaced by plugin, e.g. `/agent-skills:readme`.
 
 ### Codex
 
@@ -31,7 +31,7 @@ Or inside a session: `/plugin marketplace add SimplicityGuy/agent-skills`, then 
 codex plugin marketplace add SimplicityGuy/agent-skills
 ```
 
-Then install `agent-skills` from the Plugins directory. Update later with `codex plugin marketplace upgrade agent-skills`.
+Then install `agent-skills` from the Plugins directory. Update later with `codex plugin marketplace upgrade simplicityguy`.
 
 ### Standalone skills (no plugin)
 
