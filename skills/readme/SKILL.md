@@ -25,7 +25,7 @@ Wrap the entire header in `<div align="center">` ... `</div>`:
 
 <img src="path/to/banner.png" alt="project-name" width="400" />
 
-<!-- badges here -->
+[badge rows here]
 
 **One-sentence project description with key technologies bolded and link to the primary external resource.**
 
@@ -266,7 +266,7 @@ Docs in a table format, grouped into categories. Links point into `docs/`.
 | **[Configuration](docs/configuration.md)** | ⚙️ Environment variables and settings |
 | **[Architecture](docs/architecture.md)** | 🏛️ System design and data flow |
 
-### 👨‍💻 Development
+### 🛠️ Development
 
 | Document | Purpose |
 | --- | --- |
@@ -289,7 +289,7 @@ Rules:
 - This section mirrors `docs/README.md` index but can be slightly condensed.
 - Link to `docs/README.md` at the bottom for the full index.
 
-### 9. 👨‍💻 Development
+### 9. 🛠️ Development
 
 Day-to-day commands, code quality tooling, and CI/CD.
 
@@ -298,7 +298,7 @@ Day-to-day commands, code quality tooling, and CI/CD.
 Three subsections:
 
 ````markdown
-## 👨‍💻 Development
+## 🛠️ Development
 
 ### 🛠️ Commands
 
@@ -435,7 +435,7 @@ When auditing an existing README, check each required section. Report as:
 [MISS] 6.  🌟 Key Features
 [OK]   7.  🚀 Quick Start
 [MISS] 8.  📖 Documentation
-[OK]   9.  👨‍💻 Development
+[OK]   9.  🛠️ Development
 [OK]   10. 🛠️ Technology Stack
 [MISS] 11. 💬 Support & Community
 [WEAK] 12. 📄 License  (just "MIT" — expand to full sentence)

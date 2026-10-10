@@ -1,0 +1,11 @@
+version: 2
+rules:
+  - id: "PE3"
+    path: "readme/SKILL.md"
+    reason: "False positive: README quick-start template runs `cp .env.example .env`; no credential access"
+  - id: "PE2"
+    path: "sudo-l7/SKILL.md"
+    reason: "False positive: 'sudo' is the skill's name (sudo L7), not a privileged command"
+  - id: "EA2"
+    path: "deep-bug-hunt/*"
+    reason: "Accepted: 'without asking' / 'skip verification' are deliberate documented hard-stop and dedup rules"

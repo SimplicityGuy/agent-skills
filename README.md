@@ -89,7 +89,14 @@ The `Skill Lint` workflow (`.github/workflows/skill-lint.yml`) runs two linters 
 - [agnix](https://github.com/agent-sh/agnix) (`agnix` job), configured for Claude Code
 - [skill-check](https://github.com/thedaviddias/skill-check) (`skill-check` job)
 
-Both jobs are required status checks on `main` via a `protect-main` ruleset, managed in the [homelab](https://github.com/SimplicityGuy/homelab) OpenTofu config. Changes to `main` go through a pull request.
+The `Skill Security` workflow (`.github/workflows/skill-security.yml`) scans `skills/` with two static security scanners and uploads SARIF to Code Scanning:
+
+- [Cisco skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) (`skill-scanner` job), failing on HIGH or above
+- [NVIDIA SkillSpector](https://github.com/NVIDIA/skillspector) (`skillspector` job), failing when the risk score exceeds 50
+
+Both run without the LLM judge, so no secrets are needed. Accepted skillspector findings are recorded with reasons in `.skillspector-baseline.yaml`.
+
+Both lint jobs are required status checks on `main` via a `protect-main` ruleset, managed in the [homelab](https://github.com/SimplicityGuy/homelab) OpenTofu config. Changes to `main` go through a pull request.
 
 ## License
 
