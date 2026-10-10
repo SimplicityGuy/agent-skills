@@ -12,17 +12,40 @@ A collection of [Agent Skills](https://agentskills.io) for Claude Code and other
 | [readme](skills/readme/SKILL.md) | Create or restructure a project's root README with the standard section layout and emoji-prefixed headers |
 | [sudo-l7](skills/sudo-l7/SKILL.md) | Staff-engineer working mode: check the premise, surface unmentioned risks, push back, verify, report truthfully |
 
-## Setup
+## Install
 
-Copy or symlink the skills you want into your skills directory:
+This repo is both a Claude Code plugin marketplace and a Codex plugin marketplace, serving one plugin, `agent-skills`, that contains every skill.
+
+### Claude Code
 
 ```bash
-# User-level (all projects)
+claude plugin marketplace add SimplicityGuy/agent-skills
+claude plugin install agent-skills@agent-skills
+```
+
+Or inside a session: `/plugin marketplace add SimplicityGuy/agent-skills`, then `/plugin install agent-skills@agent-skills`. Skills are namespaced by plugin, e.g. `/agent-skills:readme`.
+
+### Codex
+
+```bash
+codex plugin marketplace add SimplicityGuy/agent-skills
+```
+
+Then install `agent-skills` from the Plugins directory. Update later with `codex plugin marketplace upgrade agent-skills`.
+
+### Standalone skills (no plugin)
+
+Any tool that follows the [Agent Skills](https://agentskills.io) layout can load the skill folders directly:
+
+```bash
+# Claude Code (user-level)
 ln -s "$PWD"/skills/* ~/.claude/skills/
 
-# Project-level
-ln -s "$PWD"/skills/* /path/to/project/.claude/skills/
+# Codex (user-level)
+ln -s "$PWD"/skills/* ~/.agents/skills/
 ```
+
+For a single project, link into that project's `.claude/skills/` or `.agents/skills/` instead.
 
 ## Adding a New Skill
 

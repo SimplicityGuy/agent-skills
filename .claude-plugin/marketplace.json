@@ -1,0 +1,14 @@
+{
+  "name": "agent-skills",
+  "description": "SimplicityGuy's agent skills",
+  "owner": {
+    "name": "Robert Wlodarczyk"
+  },
+  "plugins": [
+    {
+      "name": "agent-skills",
+      "source": "./",
+      "description": "Brand asset audits, comprehensive docs, READMEs, deep bug hunts, and staff-level engineering."
+    }
+  ]
+}
