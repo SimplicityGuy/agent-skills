@@ -5,7 +5,7 @@ description: Create a new repository in an existing GitHub organization through 
 
 # Create an Organization Repository
 
-Prepare an independently buildable repository in an existing GitHub organization using the operating standards of `monorepo-to-org`. The existing private `infra` repository owns supported GitHub settings, access, labels, visibility and encrypted secrets. Start private, keep secrets out of Git, and verify code and automation before claiming completion. Scope this workflow to the requested repository and necessary infra changes; do not initiate a monorepo split, organization-wide retrofit, branding redesign or public site by default.
+Prepare an independently buildable repository in an existing GitHub organization using the operating standards of the originating [monorepo-to-org skill](../monorepo-to-org/SKILL.md). The existing private `infra` repository owns supported GitHub settings, access, labels, visibility and encrypted secrets. Start private, keep secrets out of Git, and verify code and automation before claiming completion. Scope this workflow to the requested repository and necessary infra changes; do not initiate a monorepo split, organization-wide retrofit, branding redesign or public site by default.
 
 ## Gather decisions before provisioning
 
