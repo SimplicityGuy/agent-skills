@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: org-repo-create
 description: Create a new repository in an existing GitHub organization through a staged questionnaire and private-first, OpenTofu-managed provisioning, with just validation gates, CI, applicable Commitizen releases, and optional standardized Dependabot. Use for new organization repositories rather than monorepo decomposition or organization creation.
 ---

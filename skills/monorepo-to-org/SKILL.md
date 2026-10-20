@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: monorepo-to-org
 description: Guide an existing monorepo into a private-first GitHub organization with an interactive decision questionnaire, history-preserving extraction, OpenTofu-managed infra, SOPS, independent release gates, branding, and an Astro Pages site. Use for monorepo decomposition or multi-repository organization migrations, not product installation.
 ---
