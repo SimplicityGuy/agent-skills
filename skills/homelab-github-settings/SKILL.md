@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: homelab-github-settings
 description: Use when a SimplicityGuy GitHub repo setting (ruleset, label, merge method) was changed live and must be adopted into the homelab OpenTofu github module, or when regenerating the github inventory. Triggers on "adopt into homelab", "github-inventory", "desired-state.json", "owner.tftest.hcl", "github-state-reconcile".
 ---

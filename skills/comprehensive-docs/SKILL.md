@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: comprehensive-docs
 description: Create and maintain a comprehensive end-user documentation suite in a docs/ directory — index page, categorized guides, consistent formatting, role-based navigation, and documentation standards. Use when setting up project docs from scratch or auditing/expanding existing docs.
 ---

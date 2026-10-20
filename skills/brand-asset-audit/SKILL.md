@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: brand-asset-audit
 description: Use when creating a new project's visual identity, auditing brand asset completeness, generating missing design deliverables, or when a project needs logos, favicons, OG images, or a design system document. Triggers on "brand assets", "design system", "favicon", "og image", "logo variants", "apple-touch-icon", "webmanifest".
 ---

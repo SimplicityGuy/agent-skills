@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: agent-sh/agnix@d2214a4de441b7c7db8b842035319477b3b6a0b2 # v0.58.0
+      - uses: agent-sh/agnix@cc559089a2e5fec8b84229c810827ff8d4685a22 # v0.59.0
         with:
           path: skills
           config: .agnix.toml
@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test SARIF export
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       # Run the CLI directly: the thedaviddias/skill-check action is pinned to the
       # deprecated node20 runtime and has no newer release. The action defaulted
       # security-scan to false; the CLI defaults it on, and its scanner (Snyk

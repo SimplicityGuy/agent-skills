@@ -15,6 +15,9 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
+    # Preserve the three-day release cooldown for version updates.
+    cooldown:
+      default-days: 3
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -24,6 +27,11 @@ updates:
     assignees:
       - "SimplicityGuy"
     groups:
-      actions:
+      actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      actions-security-updates:
+        applies-to: security-updates
         patterns:
           - "*"
