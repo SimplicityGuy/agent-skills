@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: readme
 description: Create or update a polished project README.md following a proven open-source structure — banner image, badge rows, centered nav bar, emoji-prefixed sections (What is, Architecture, Key Features, Quick Start, Documentation, Development, Technology Stack, Community, License, Acknowledgments), and "Made with" footer. Use when bootstrapping a new project's README, auditing an existing one for missing sections, or standardizing READMEs across projects. Triggers on "readme", "root readme", "project readme", "readme sections", "readme template".
 ---

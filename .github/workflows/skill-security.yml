@@ -51,9 +51,13 @@ jobs:
         run: >
           uvx --python 3.12 --from git+https://github.com/NVIDIA/skillspector.git@v2.12.0
           skillspector scan skills --no-llm --baseline .skillspector-baseline.yaml --format sarif --output skillspector.sarif
+      # GitHub still opens alerts for external SARIF suppressions. Export only
+      # active findings and repair paths relative to the scanned skills directory.
+      - name: Prepare GitHub SARIF
+        run: python3 .github/scripts/prepare-skillspector-sarif.py skillspector.sarif skillspector-github.sarif
       - name: Upload SARIF
         if: ${{ !cancelled() && github.event.pull_request.head.repo.fork != true }}
         uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
-          sarif_file: skillspector.sarif
+          sarif_file: skillspector-github.sarif
           category: skillspector

@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: repo-ci-setup
 description: Use when setting up or auditing GitHub repo automation - SHA-pinned GitHub Actions workflows, required status checks that block PRs, or Node 20 deprecation notices. Triggers on "required checks", "block PRs", "pin actions", "node20 deprecated", "branch ruleset".
 ---

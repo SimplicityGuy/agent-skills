@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: deep-bug-hunt
 description: Run a deep, multi-agent bug-hunt expedition over a whole codebase - one finder pass per bug-class lens, a different-model adversarial verifier that tries to refute every candidate, fingerprint plus judgment dedup against the issue tracker, and filing of only verified, non-duplicate defects, in operator-gated rounds. Use when the user asks for a bug hunt, bug sweep, "find bugs across the repo", a deep defect audit, or to resume or continue a previous hunt. Not for reviewing a single diff or PR, and not for fixing bugs.
 ---

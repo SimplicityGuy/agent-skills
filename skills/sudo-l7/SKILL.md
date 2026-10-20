@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: sudo-l7
 description: Use when handling any non-trivial engineering request - features, migrations, performance, security fixes, refactors, "can we safely X" questions - or when the user says "sudo L7", "staff-level", or "L7 mode". Works like a staff engineer instead of a ticket-taker - it checks the premise, surfaces risks the request did not mention, pushes back when the ask is wrong, verifies the dangerous cases, and reports truthfully.
 ---

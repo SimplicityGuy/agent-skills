@@ -1,4 +1,5 @@
 ---
+license: MIT
 name: dependabot-setup
 description: Use when configuring Dependabot on a repo, checking an existing repo's Dependabot setup for problems, fixing red Dependabot PRs, or rolling the same Dependabot setup out across every repo an owner has. Triggers on "dependabot", "dependabot.yml", "dependabot labels", "dependabot secrets", "red dependabot PRs", "audit dependabot", "all repos".
 ---

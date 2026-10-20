@@ -15,6 +15,10 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
+    # GitHub Actions defaults to a three-day cooldown even when omitted.
+    # Pick the newest release at the scheduled check, including fresh releases.
+    cooldown:
+      default-days: 0
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -24,6 +28,11 @@ updates:
     assignees:
       - "SimplicityGuy"
     groups:
-      actions:
+      actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      actions-security-updates:
+        applies-to: security-updates
         patterns:
           - "*"
