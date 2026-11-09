@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: agent-sh/agnix@64df6164fa18a8135a192ee529dff2ac414dbf4f # v0.60.2
+      - uses: agent-sh/agnix@fefbece836bd558bbbc0847633f995d8138e8f08 # v0.61.0
         with:
           path: skills
           config: .agnix.toml
